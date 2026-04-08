@@ -2,87 +2,83 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fixed Mobile Curve Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Fluid Curve - Safe Layout</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: #1a1a1a; color: #e0e0e0;
+            font-family: system-ui, sans-serif;
+            background-color: #111; color: #eee;
             height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            /* Support untuk notch/home bar di iOS/Android */
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        header { background: #111; padding: 10px; border-bottom: 1px solid #333; text-align: center; flex-shrink: 0; }
-        header h1 { font-size: 0.8rem; letter-spacing: 1px; color: #fff; text-transform: uppercase; }
+
+        header { background: #000; padding: 10px; text-align: center; border-bottom: 1px solid #333; flex-shrink: 0; }
+        header h1 { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1.5px; }
 
         .main-container { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 
-        /* PREVIEW AREA */
+        /* AREA PREVIEW */
         #preview-panel {
             flex: 1; background: #151515; display: flex;
-            justify-content: center; align-items: center; padding: 10px; 
-            overflow: hidden; min-height: 150px;
+            justify-content: center; align-items: center; padding: 5px; 
+            overflow: hidden; position: relative;
         }
         #imageCanvas { 
             max-width: 100%; max-height: 100%; object-fit: contain;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            background-color: #222;
-            background-image: linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%);
-            background-size: 10px 10px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.6);
+            background: repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 50% / 15px 15px;
         }
 
-        /* CONTROLS AREA */
+        /* AREA KONTROL: Ditambah padding bawah agar tidak terpotong */
         #controls-panel {
-            background: #222; padding: 15px;
-            border-top: 1px solid #333; display: flex; flex-direction: column; gap: 10px;
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            background: #222; 
+            padding: 15px 12px 40px 12px; /* Padding bawah 40px agar aman dari home bar */
+            border-top: 1px solid #444;
+            display: flex; flex-direction: column; gap: 14px;
+            max-height: 50vh; 
+            overflow-y: auto;
+            flex-shrink: 0; /* Mencegah panel ini mengecil secara paksa */
         }
 
-        /* FIX STRETCH: Square Aspect Ratio Container */
-        .curve-wrapper {
-            width: 100%;
-            max-width: 280px; /* Ukuran maksimal di mobile */
-            margin: 0 auto;
-            aspect-ratio: 1 / 1; /* Memastikan kotak tetap persegi sempurna */
-            position: relative;
-            background: #000;
-            border: 1px solid #444;
-            touch-action: none;
-        }
-        #curveCanvas { 
-            position: absolute; top: 0; left: 0; 
-            width: 100% !important; height: 100% !important; 
-            display: block;
-        }
+        .input-group { background: #333; padding: 10px; border-radius: 8px; border: 1px solid #444; }
+        input[type="file"] { font-size: 0.75rem; width: 100%; color: #ccc; }
 
         .tabs { display: flex; background: #000; border-radius: 8px; padding: 3px; gap: 3px; }
-        .tab {
-            flex: 1; text-align: center; padding: 10px 0; cursor: pointer;
-            font-size: 0.7rem; font-weight: bold; border-radius: 5px;
-        }
-        .tab.active { background: #333; }
-        .tab[data-chan="all"] { color: #fff; }
-        .tab[data-chan="r"] { color: #ff5555; }
-        .tab[data-chan="g"] { color: #55ff55; }
-        .tab[data-chan="b"] { color: #5555ff; }
+        .tab { flex: 1; text-align: center; padding: 12px 0; cursor: pointer; font-size: 0.7rem; font-weight: bold; border-radius: 6px; }
+        .tab.active { background: #444; color: #fff; }
+        .tab[data-chan="r"] { color: #ff6666; }
+        .tab[data-chan="g"] { color: #66ff66; }
+        .tab[data-chan="b"] { color: #6666ff; }
 
-        .btn {
-            border: none; color: #fff; padding: 12px; border-radius: 8px;
-            font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center;
+        .curve-wrapper {
+            width: 220px; height: 220px; margin: 0 auto;
+            position: relative; background: #000; border: 1px solid #555;
+            touch-action: none; flex-shrink: 0;
         }
-        .btn-gray { background: #3a3a3a; }
+        #curveCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* TOMBOL AKSI: Dibuat lebih tebal dan jelas */
+        .action-row { display: flex; gap: 10px; flex-shrink: 0; padding-bottom: 5px; }
+        .btn { 
+            border: none; color: #fff; padding: 16px; border-radius: 10px; 
+            font-size: 0.9rem; font-weight: 800; cursor: pointer; text-align: center; flex: 1;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .btn-gray { background: #4a4a4a; }
         .btn-green { background: #2e7d32; }
-        .btn-green.disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-disabled { opacity: 0.15; pointer-events: none; }
 
         @media (min-width: 768px) {
             .main-container { flex-direction: row; }
-            #controls-panel { width: 320px; height: 100%; border-top: none; border-right: 1px solid #333; }
-            .curve-wrapper { max-width: 256px; }
+            #controls-panel { width: 320px; height: 100%; max-height: none; padding-bottom: 20px; border-right: 1px solid #333; }
         }
     </style>
 </head>
 <body>
 
-<header><h1>PRO CURVE EDITOR</h1></header>
+<header><h1>FLUID EDITOR PRO</h1></header>
 
 <div class="main-container">
     <main id="preview-panel">
@@ -90,10 +86,11 @@
     </main>
 
     <aside id="controls-panel">
-        <input type="file" id="imageLoader" accept="image/*" style="display:none"/>
-        <button class="btn btn-gray" onclick="document.getElementById('imageLoader').click()">PILIH FOTO</button>
+        <div class="input-group">
+            <input type="file" id="imageLoader" accept="image/*" />
+        </div>
 
-        <div class="tabs" id="channelTabs">
+        <div class="tabs">
             <div class="tab active" data-chan="all">RGB</div>
             <div class="tab" data-chan="r">RED</div>
             <div class="tab" data-chan="g">GREEN</div>
@@ -104,14 +101,18 @@
             <canvas id="curveCanvas" width="256" height="256"></canvas>
         </div>
         
-        <div style="display: flex; gap: 5px;">
-            <button class="btn btn-gray" id="resetCurve" style="flex: 1;">RESET</button>
-            <a id="downloadLink" class="btn btn-green disabled" style="flex: 2;">SIMPAN PNG</a>
+        <div class="action-row">
+            <button class="btn btn-gray" id="resetCurve">RESET</button>
+            <a id="downloadLink" class="btn btn-green btn-disabled">SIMPAN</a>
         </div>
+        <p style="font-size: 0.65rem; color: #555; text-align: center; padding-bottom: 10px;">
+            Tip: Tambahkan titik pada garis, tarik untuk sesuaikan warna.
+        </p>
     </aside>
 </div>
 
 <script>
+    // --- LOGIKA UTAMA (Tetap sama, stabil & fluid) ---
     const imageLoader = document.getElementById('imageLoader');
     const imageCanvas = document.getElementById('imageCanvas');
     const imgCtx = imageCanvas.getContext('2d', { willReadFrequently: true });
@@ -129,7 +130,30 @@
         b: [{ x: 0, y: 256 }, { x: 256, y: 0 }]
     };
 
-    // Cubic Spline Logic
+    imageLoader.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const maxDim = 1400;
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    const r = Math.min(maxDim/w, maxDim/h);
+                    w *= r; h *= r;
+                }
+                imageCanvas.width = w; imageCanvas.height = h;
+                imgCtx.drawImage(img, 0, 0, w, h);
+                originalImgData = imgCtx.getImageData(0, 0, w, h);
+                downloadLink.classList.remove('btn-disabled');
+                applyCurve();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
     function getSplineLUT(pts) {
         const n = pts.length;
         const x = pts.map(p => p.x);
@@ -144,21 +168,21 @@
             const m = ms[i], mNext = ms[i+1];
             if (m * mNext <= 0) c1s.push(0);
             else {
-                const common_ = dx[i] + dx[i+1];
-                c1s.push(3 * common_ / ((common_ + dx[i+1]) / m + (common_ + dx[i]) / mNext));
+                const c = dx[i] + dx[i+1];
+                c1s.push(3 * c / ((c + dx[i+1]) / m + (c + dx[i]) / mNext));
             }
         }
         c1s.push(ms[n - 2]);
         const c2s = [], c3s = [];
         for (let i = 0; i < n - 1; i++) {
-            const c1 = c1s[i], m = ms[i], invDx = 1 / dx[i], common_ = c1 + c1s[i+1] - 2 * m;
-            c2s.push((m - c1 - common_) * invDx); c3s.push(common_ * invDx * invDx);
+            const c1 = c1s[i], m = ms[i], invDx = 1 / dx[i], common = c1 + c1s[i+1] - 2 * m;
+            c2s.push((m - c1 - common) * invDx); c3s.push(common * invDx * invDx);
         }
         for (let i = 0; i < 256; i++) {
             let j = n - 2;
             while (j > 0 && x[j] > i) j--;
-            const diff = i - x[j];
-            lut[i] = y[j] + c1s[j] * diff + c2s[j] * diff * diff + c3s[j] * diff * diff * diff;
+            const d = i - x[j];
+            lut[i] = y[j] + c1s[j] * d + c2s[j] * d * d + c3s[j] * d * d * d;
         }
         return lut;
     }
@@ -166,7 +190,7 @@
     function drawCurve() {
         curveCtx.fillStyle = "#000";
         curveCtx.fillRect(0,0,256,256);
-        curveCtx.strokeStyle = '#222';
+        curveCtx.strokeStyle = '#252525';
         for(let i=1; i<4; i++) {
             curveCtx.beginPath(); curveCtx.moveTo(i*64, 0); curveCtx.lineTo(i*64, 256); curveCtx.stroke();
             curveCtx.beginPath(); curveCtx.moveTo(0, i*64); curveCtx.lineTo(256, i*64); curveCtx.stroke();
@@ -175,8 +199,7 @@
         const lut = getSplineLUT(channelData[currentChannel]);
         curveCtx.strokeStyle = colors[currentChannel];
         curveCtx.lineWidth = 3;
-        curveCtx.beginPath();
-        curveCtx.moveTo(0, 256 - lut[0]);
+        curveCtx.beginPath(); curveCtx.moveTo(0, 256 - lut[0]);
         for(let x=1; x<256; x++) curveCtx.lineTo(x, 256 - lut[x]);
         curveCtx.stroke();
         channelData[currentChannel].forEach(p => {
@@ -208,16 +231,12 @@
     function setupEvents() {
         const getCoord = (e) => {
             const rect = curveCanvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            // Penting: Normalisasi koordinat agar tidak stretch
-            return { 
-                x: (clientX - rect.left) * (256 / rect.width), 
-                y: (clientY - rect.top) * (256 / rect.height) 
-            };
+            const cX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            const cY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+            return { x: (cX - rect.left) * (256/rect.width), y: (cY - rect.top) * (256/rect.height) };
         };
 
-        const onDown = (e) => {
+        const onStart = (e) => {
             const pos = getCoord(e);
             const pts = channelData[currentChannel];
             const idx = pts.findIndex(p => Math.hypot(p.x - pos.x, p.y - pos.y) < 25);
@@ -243,8 +262,8 @@
             drawCurve(); applyCurve();
         };
 
-        curveCanvas.addEventListener('mousedown', onDown);
-        curveCanvas.addEventListener('touchstart', onDown, {passive: false});
+        curveCanvas.addEventListener('mousedown', onStart);
+        curveCanvas.addEventListener('touchstart', onStart, {passive: false});
         window.addEventListener('mousemove', onMove);
         window.addEventListener('touchmove', onMove, {passive: false});
         window.addEventListener('mouseup', () => draggedPointIndex = -1);
@@ -254,7 +273,7 @@
         curveCanvas.addEventListener('touchend', (e) => {
             const now = Date.now();
             if (now - lastTap < 300) {
-                const pos = getCoord(e.changedTouches[0]);
+                const pos = getCoord(e.changedTouches ? e.changedTouches[0] : e);
                 const pts = channelData[currentChannel];
                 const idx = pts.findIndex(p => Math.hypot(p.x - pos.x, p.y - pos.y) < 30);
                 if(idx > 0 && idx < pts.length - 1) {
@@ -265,36 +284,12 @@
         });
     }
 
-    function handleUpload(e) {
-        const file = e.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const maxDim = 1000;
-                let w = img.width, h = img.height;
-                if(w > maxDim || h > maxDim) {
-                    const ratio = Math.min(maxDim/w, maxDim/h);
-                    w *= ratio; h *= ratio;
-                }
-                imageCanvas.width = w; imageCanvas.height = h;
-                imgCtx.drawImage(img, 0, 0, w, h);
-                originalImgData = imgCtx.getImageData(0, 0, w, h);
-                downloadLink.classList.remove('disabled');
-                applyCurve();
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t => {
+        t.onclick = () => {
             document.querySelector('.tab.active').classList.remove('active');
-            tab.classList.add('active');
-            currentChannel = tab.dataset.chan;
+            t.classList.add('active'); currentChannel = t.dataset.chan;
             drawCurve();
-        };
+        }
     });
 
     document.getElementById('resetCurve').onclick = () => {
@@ -303,9 +298,9 @@
     };
 
     downloadLink.onclick = (e) => {
-        if (downloadLink.classList.contains('disabled')) return e.preventDefault();
+        if (downloadLink.classList.contains('btn-disabled')) return e.preventDefault();
         downloadLink.href = imageCanvas.toDataURL("image/png");
-        downloadLink.download = "curve_edit.png";
+        downloadLink.download = "edit_safe.png";
     };
 
     setupEvents(); drawCurve();
